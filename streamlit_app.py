@@ -1,151 +1,111 @@
 import streamlit as st
+import joblib
 import pandas as pd
-import math
-from pathlib import Path
+import numpy as np
+from sklearn.base import BaseEstimator, TransformerMixin
 
-# Set the title and favicon that appear in the Browser's tab bar.
-st.set_page_config(
-    page_title='GDP dashboard',
-    page_icon=':earth_americas:', # This is an emoji shortcode. Could be a URL too.
-)
+# Definición de la clase CombinedAttributesAdder
+class CombinedAttributesAdder(BaseEstimator, TransformerMixin):
+    def __init__(self, add_temp_humidity=True):
+        self.add_temp_humidity = add_temp_humidity
 
-# -----------------------------------------------------------------------------
-# Declare some useful functions.
+    def fit(self, X, y=None):
+        return self
 
-@st.cache_data
-def get_gdp_data():
-    """Grab GDP data from a CSV file.
+    def transform(self, X):
+        X_temp = X.copy()
+        if self.add_temp_humidity:
+            X_temp['temp_humidity'] = X_temp['temp'] * X_temp['humidity']
+        return X_temp
 
-    This uses caching to avoid having to read the file every time. If we were
-    reading from an HTTP endpoint instead of a file, it's a good idea to set
-    a maximum age to the cache with the TTL argument: @st.cache_data(ttl='1d')
+# Cargar el modelo y el pipeline
+model = joblib.load("SVM.pkl")
+pipeline = joblib.load("pipeline.joblib")
+
+# Título de la aplicación
+st.markdown(
     """
-
-    # Instead of a CSV on disk, you could read from an HTTP endpoint here too.
-    DATA_FILENAME = Path(__file__).parent/'data/gdp_data.csv'
-    raw_gdp_df = pd.read_csv(DATA_FILENAME)
-
-    MIN_YEAR = 1960
-    MAX_YEAR = 2022
-
-    # The data above has columns like:
-    # - Country Name
-    # - Country Code
-    # - [Stuff I don't care about]
-    # - GDP for 1960
-    # - GDP for 1961
-    # - GDP for 1962
-    # - ...
-    # - GDP for 2022
-    #
-    # ...but I want this instead:
-    # - Country Name
-    # - Country Code
-    # - Year
-    # - GDP
-    #
-    # So let's pivot all those year-columns into two: Year and GDP
-    gdp_df = raw_gdp_df.melt(
-        ['Country Code'],
-        [str(x) for x in range(MIN_YEAR, MAX_YEAR + 1)],
-        'Year',
-        'GDP',
-    )
-
-    # Convert years from string to integers
-    gdp_df['Year'] = pd.to_numeric(gdp_df['Year'])
-
-    return gdp_df
-
-gdp_df = get_gdp_data()
-
-# -----------------------------------------------------------------------------
-# Draw the actual page
-
-# Set the title that appears at the top of the page.
-'''
-# :earth_americas: GDP dashboard
-
-Browse GDP data from the [World Bank Open Data](https://data.worldbank.org/) website. As you'll
-notice, the data only goes to 2022 right now, and datapoints for certain years are often missing.
-But it's otherwise a great (and did I mention _free_?) source of data.
-'''
-
-# Add some spacing
-''
-''
-
-min_value = gdp_df['Year'].min()
-max_value = gdp_df['Year'].max()
-
-from_year, to_year = st.slider(
-    'Which years are you interested in?',
-    min_value=min_value,
-    max_value=max_value,
-    value=[min_value, max_value])
-
-countries = gdp_df['Country Code'].unique()
-
-if not len(countries):
-    st.warning("Select at least one country")
-
-selected_countries = st.multiselect(
-    'Which countries would you like to view?',
-    countries,
-    ['DEU', 'FRA', 'GBR', 'BRA', 'MEX', 'JPN'])
-
-''
-''
-''
-
-# Filter the data
-filtered_gdp_df = gdp_df[
-    (gdp_df['Country Code'].isin(selected_countries))
-    & (gdp_df['Year'] <= to_year)
-    & (from_year <= gdp_df['Year'])
-]
-
-st.header('GDP over time', divider='gray')
-
-''
-
-st.line_chart(
-    filtered_gdp_df,
-    x='Year',
-    y='GDP',
-    color='Country Code',
+    <h1 style='text-align: center;'>Predicción de Casos de Dengue</h1>
+    """,
+    unsafe_allow_html=True
 )
 
-''
-''
+st.markdown(
+    """
+    <div style="text-align: center;">
+        <p>Maestría en Ingeniería en Computación</p>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    """
+    <div style="text-align: center;">
+        <p>Francisco Uriel Olivas Márquez 341948</p>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+st.image('dengue (1).jpg',use_column_width=True)
+
+# Entradas del usuario
+col1, col2 = st.columns(2)
+tempmax = col1.number_input("Temperatura Máxima (°C)", min_value=-50.0, max_value=50.0, value=34.0)
+tempmin = col1.number_input("Temperatura Mínima (°C)", min_value=-50.0, max_value=50.0, value=24.0)
+temp = col1.number_input("Temperatura (°C)", min_value=-50.0, max_value=50.0, value=28.0)
+feelslikemax = col1.number_input("Sensación Térmica Máxima (°C)", min_value=-50.0, max_value=50.0, value=39.0)
+feelslikemin = col1.number_input("Sensación Térmica Mínima", min_value=0.0, max_value=50.0, value=25.0)
+feelslike= col1.number_input("Sensación Térmica", min_value=0.0, max_value=50.0, value=32.0)
+dew = col1.number_input("Rocío", min_value=0.0, max_value=50.0, value=22.0)
+humidity = col1.number_input("Humedad", min_value=0.0, max_value=100.0, value=73.0)
+precip = col1.number_input("Precipitación(mm)", min_value=0.0, max_value=500.0, value=3.0)
+precipprob = col1.number_input("Probabilidad de Preciítación", min_value=0.0, max_value=100.0, value=44.0)
+precipcover = col2.number_input("Cobertura de precipitación", min_value=0.0, max_value=500.0, value=4.0)
+windspeed = col2.number_input("Velocidad del Viento", min_value=0.0, max_value=500.0, value=15.0)
+winddir = col2.number_input("Dirección del Viento", min_value=0.0, max_value=500.0, value=175.0)
+sealevelpressure = col2.number_input("Presión", min_value=0.0, max_value=1500.0, value=1007.0)
+cloudcover = col2.number_input("Cobertura de Nubes", min_value=0.0, max_value=100.0, value=50.0)
+visibility = col2.number_input("Visibilidad", min_value=0.0, max_value=50.0, value=3.75)
+solarradiation = col2.number_input("Radiación Solar", min_value=0.0, max_value=500.0, value=208.0)
+solarenergy = col2.number_input("Energía Solar", min_value=0.0, max_value=50.0, value=18.0)
+uvindex = col2.number_input("Índice UV", min_value=0.0, max_value=50.0, value=7.0)
+conditions = col2.number_input("Condiciones", min_value=0.0, max_value=4.0, value=1.19)
 
 
-first_year = gdp_df[gdp_df['Year'] == from_year]
-last_year = gdp_df[gdp_df['Year'] == to_year]
 
-st.header(f'GDP in {to_year}', divider='gray')
+# Crear un DataFrame con las entradas
+input_data = pd.DataFrame({
+    'temp': [temp],
+    'tempmax': [tempmax],
+    'tempmin': [tempmin],
+    'feelslike': [feelslike],
+    'humidity': [humidity],
+    'precip': [precip],
+    'snow': [0],
+    'dew': [dew],
+    'visibility': [visibility],
+    'winddir': [winddir],
+    'precipprob': [precipprob],
+    'sealevelpressure': [sealevelpressure],
+    'solarradiation': [solarradiation],
+    'stations': [0],
+    'uvindex': [uvindex],
+    'solarenergy': [solarenergy],
+    'feelslikemax': [feelslikemax],
+    'precipcover': [precipcover],
+    'conditions': [conditions],
+    'feelslikemin': [feelslikemin],
+    'windspeed': [windspeed],
+    'cloudcover': [cloudcover],
+    'snowdepth': [0]
+})
 
-''
+# Transformar los datos utilizando el pipeline
+input_data_prepared = pipeline.transform(input_data)
 
-cols = st.columns(4)
-
-for i, country in enumerate(selected_countries):
-    col = cols[i % len(cols)]
-
-    with col:
-        first_gdp = first_year[first_year['Country Code'] == country]['GDP'].iat[0] / 1000000000
-        last_gdp = last_year[last_year['Country Code'] == country]['GDP'].iat[0] / 1000000000
-
-        if math.isnan(first_gdp):
-            growth = 'n/a'
-            delta_color = 'off'
-        else:
-            growth = f'{last_gdp / first_gdp:,.2f}x'
-            delta_color = 'normal'
-
-        st.metric(
-            label=f'{country} GDP',
-            value=f'{last_gdp:,.0f}B',
-            delta=growth,
-            delta_color=delta_color
-        )
+# Botón para hacer predicción
+if st.button("Realizar Predicción"):
+    prediction = model.predict(input_data_prepared)
+    st.success(f"La predicción de casos es: {prediction[0]}")
