@@ -2,7 +2,7 @@
 
 Utilizando datos climáticos
 
-[![Open in Streamlit](https://dengue-prediction.streamlit.app/)
+[![Open in Streamlit](https://dengue-prediction.streamlit.app/)]
 
 ### How to run it on your own machine
 
