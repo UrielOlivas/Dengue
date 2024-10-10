@@ -1,7 +1,6 @@
 # Predicción de Casos de Dengue
 
-Utilizando datos climáticos
-https://dengue-prediction.streamlit.app/
+[https://dengue-prediction.streamlit.app/](https://dengue-cases-prediction.streamlit.app/)
 
 ### How to run it on your own machine
 
